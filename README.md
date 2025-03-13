@@ -7,11 +7,10 @@
 
 ## 📸 Project Screenshots
 
-![Login Page](screenshots/login.png)
-![Dashboard](screenshots/dashboard.png)
-![Menu Management](screenshots/menu.png)
-![Order Processing](screenshots/orders.png)
-![QR Code Integration](screenshots/qr-code.png)
+![Login Page](Login](https://github.com/user-attachments/assets/8ed9367a-9cc6-444f-b261-1958c596cd53)), ![](https://github.com/user-attachments/assets/e61ae594-271c-4562-8be4-d6c166cd2cc7)
+
+![Menu Management](![](https://github.com/user-attachments/assets/6d4188d1-4f1e-4e27-bb2f-64b8623a4d46))
+
 
 ## 🌟 Features
 
