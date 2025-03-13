@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+            --light-bg: #ecf0f1;
+        }
+
+        body {
+            background-color: var(--light-bg);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+        }
+
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 1rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 0.8rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
+            color: var(--primary-color);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Status Badge */
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .badge-inactive {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>Admin Dashboard</h1>
+            <ul class="nav-menu">
+                <li><a href="admin.html">Dashboard</a></li>
+                <li><a href="admin.html#menu">Menu Management</a></li>
+                <li><a href="users.html" class="active">User Management</a></li>
+                <li><a href="admin.html#meal-plans">Meal Plans</a></li>
+                <li><a href="admin.html#transactions">Transactions</a></li>
+                <li><a href="admin.html#settings">Settings</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h2>User Management</h2>
+                <button class="btn btn-primary" onclick="showAddUserModal()">Add New User</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be loaded here dynamically -->
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <h3>Filter Users</h3>
+                <div class="filters">
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" class="form-control" onchange="loadUsers()">
+                            <option value="all">All Roles</option>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" class="form-control" onchange="loadUsers()">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search">Search</label>
+                        <input type="text" id="search" class="form-control" placeholder="Search by name, email..." onkeyup="loadUsers()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="card">
+                <h3>User List</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here dynamically -->
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination" id="paginationContainer">
+                    <!-- Pagination will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Add New User</h3>
+            <form id="addUserForm" onsubmit="handleAddUser(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="userRole">Role</label>
+                    <select id="userRole" class="form-control" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="initialBalance">Initial Balance</label>
+                    <input type="number" id="initialBalance" class="form-control" value="0" step="0.01">
+                </div>
+                <button type="submit" class="btn btn-success">Add User</button>
+                <button type="button" class="btn btn-danger" onclick="hideAddUserModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const perPage = 20;
+
+        // Load everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadUsers();
+        });
+
+        function loadStats() {
+            fetch('/api/admin/users/stats')
+                .then(response => response.json())
+                .then(data => {
+                    const statsGrid = document.getElementById('statsGrid');
+                    statsGrid.innerHTML = `
+                        <div class="stat-card">
+                            <h4>Total Users</h4>
+                            <div class="value">${data.total_users}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Active Meal Plans</h4>
+                            <div class="value">${data.active_meal_plans}</div>
+                        </div>
+                    `;
+                })
+                .catch(error => console.error('Error loading stats:', error));
+        }
+
+        function loadUsers() {
+            const role = document.getElementById('role').value;
+            const status = document.getElementById('status').value;
+            const search = document.getElementById('search').value;
+
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage,
+                role: role,
+                status: status,
+                search: search
+            });
+
+            fetch(`/api/users?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('usersTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    data.users.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.id}</td>
+                            <td>${user.full_name}</td>
+                            <td>${user.email}</td>
+                            <td>${user.role}</td>
+                            <td>₹${user.balance}</td>
+                            <td><span class="badge badge-${user.status.toLowerCase()}">${user.status}</span></td>
+                            <td>
+                                <button class="btn btn-primary" onclick="editUser(${user.id})">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Update pagination
+                    updatePagination(data.pagination);
+                })
+                .catch(error => console.error('Error loading users:', error));
+        }
+
+        function updatePagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = '';
+
+            // Previous button
+            if (pagination.current_page > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.innerHTML = '&laquo;';
+                prevButton.onclick = () => {
+                    currentPage--;
+                    loadUsers();
+                };
+                container.appendChild(prevButton);
+            }
+
+            // Page numbers
+            for (let i = 1; i <= pagination.total_pages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                if (i === pagination.current_page) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    currentPage = i;
+                    loadUsers();
+                };
+                container.appendChild(button);
+            }
+
+            // Next button
+            if (pagination.current_page < pagination.total_pages) {
+                const nextButton = document.createElement('button');
+                nextButton.innerHTML = '&raquo;';
+                nextButton.onclick = () => {
+                    currentPage++;
+                    loadUsers();
+                };
+                container.appendChild(nextButton);
+            }
+        }
+
+        function showAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'block';
+        }
+
+        function hideAddUserModal() {
+            document.getElementById('addUserModal').style.display = 'none';
+            document.getElementById('addUserForm').reset();
+        }
+
+        function handleAddUser(event) {
+            event.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                full_name: document.getElementById('fullName').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('userRole').value,
+                balance: parseFloat(document.getElementById('initialBalance').value)
+            };
+
+            fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('User added successfully!');
+                hideAddUserModal();
+                loadUsers(); // Reload the users table
+            })
+            .catch(error => console.error('Error adding user:', error));
+        }
+
+        function editUser(userId) {
+            // Fetch user details and show edit modal
+            fetch(`/api/users/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Show edit modal with user data
+                    alert('Edit user functionality to be implemented');
+                })
+                .catch(error => console.error('Error loading user details:', error));
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                fetch(`/api/users/${userId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('User deleted successfully!');
+                        loadUsers(); // Reload the users table
+                    }
+                })
+                .catch(error => console.error('Error deleting user:', error));
+            }
+        }
+    </script>
+</body>
+</html> 

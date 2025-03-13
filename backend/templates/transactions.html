@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f1c40f;
+            --light-bg: #ecf0f1;
+        }
+
+        body {
+            background-color: var(--light-bg);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem;
+        }
+
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 1rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 0.8rem;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
+            color: var(--primary-color);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        /* Filter Section */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Transaction Status Badges */
+        .badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .badge-pending {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .badge-failed {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--primary-color);
+            background-color: white;
+            color: var(--primary-color);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .pagination button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>Admin Dashboard</h1>
+            <ul class="nav-menu">
+                <li><a href="admin.html">Dashboard</a></li>
+                <li><a href="admin.html#menu">Menu Management</a></li>
+                <li><a href="users.html">User Management</a></li>
+                <li><a href="admin.html#meal-plans">Meal Plans</a></li>
+                <li><a href="transactions.html" class="active">Transactions</a></li>
+                <li><a href="admin.html#settings">Settings</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h2>Transaction Management</h2>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be loaded here dynamically -->
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <h3>Filter Transactions</h3>
+                <div class="filters">
+                    <div class="form-group">
+                        <label for="dateRange">Date Range</label>
+                        <select id="dateRange" class="form-control" onchange="loadTransactions()">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionType">Transaction Type</label>
+                        <select id="transactionType" class="form-control" onchange="loadTransactions()">
+                            <option value="all">All Types</option>
+                            <option value="meal">Meal</option>
+                            <option value="recharge">Balance Recharge</option>
+                            <option value="extra">Extra Items</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status" class="form-control" onchange="loadTransactions()">
+                            <option value="all">All Status</option>
+                            <option value="success">Success</option>
+                            <option value="pending">Pending</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search">Search</label>
+                        <input type="text" id="search" class="form-control" placeholder="Search by ID, user..." onkeyup="loadTransactions()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card">
+                <h3>Recent Transactions</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody">
+                        <!-- Transactions will be loaded here dynamically -->
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination" id="paginationContainer">
+                    <!-- Pagination will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const perPage = 20;
+
+        // Load everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadTransactions();
+        });
+
+        function loadStats() {
+            fetch('/api/admin/transactions/stats')
+                .then(response => response.json())
+                .then(data => {
+                    const statsGrid = document.getElementById('statsGrid');
+                    statsGrid.innerHTML = `
+                        <div class="stat-card">
+                            <h4>Total Transactions</h4>
+                            <div class="value">${data.meal_transactions + data.recharge_transactions + data.extra_item_transactions}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Meal Transactions</h4>
+                            <div class="value">${data.meal_transactions}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Recharge Transactions</h4>
+                            <div class="value">${data.recharge_transactions}</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Extra Item Transactions</h4>
+                            <div class="value">${data.extra_item_transactions}</div>
+                        </div>
+                    `;
+                })
+                .catch(error => console.error('Error loading stats:', error));
+        }
+
+        function loadTransactions() {
+            const dateRange = document.getElementById('dateRange').value;
+            const type = document.getElementById('transactionType').value;
+            const status = document.getElementById('status').value;
+            const search = document.getElementById('search').value;
+
+            // Build query parameters
+            const params = new URLSearchParams({
+                page: currentPage,
+                per_page: perPage,
+                date_range: dateRange,
+                type: type,
+                status: status,
+                search: search
+            });
+
+            fetch(`/api/transactions?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('transactionsTableBody');
+                    tableBody.innerHTML = '';
+                    
+                    data.transactions.forEach(tx => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${tx.id}</td>
+                            <td>${tx.user_name}</td>
+                            <td>${tx.transaction_type}</td>
+                            <td>₹${tx.amount}</td>
+                            <td>${new Date(tx.timestamp).toLocaleString()}</td>
+                            <td><span class="badge badge-${tx.status.toLowerCase()}">${tx.status}</span></td>
+                            <td>
+                                <button class="btn btn-primary" onclick="viewTransactionDetails(${tx.id})">View Details</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Update pagination
+                    updatePagination(data.pagination);
+                })
+                .catch(error => console.error('Error loading transactions:', error));
+        }
+
+        function updatePagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            container.innerHTML = '';
+
+            // Previous button
+            if (pagination.current_page > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.innerHTML = '&laquo;';
+                prevButton.onclick = () => {
+                    currentPage--;
+                    loadTransactions();
+                };
+                container.appendChild(prevButton);
+            }
+
+            // Page numbers
+            for (let i = 1; i <= pagination.total_pages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                if (i === pagination.current_page) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    currentPage = i;
+                    loadTransactions();
+                };
+                container.appendChild(button);
+            }
+
+            // Next button
+            if (pagination.current_page < pagination.total_pages) {
+                const nextButton = document.createElement('button');
+                nextButton.innerHTML = '&raquo;';
+                nextButton.onclick = () => {
+                    currentPage++;
+                    loadTransactions();
+                };
+                container.appendChild(nextButton);
+            }
+        }
+
+        function viewTransactionDetails(transactionId) {
+            fetch(`/api/transactions/${transactionId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Show transaction details in a modal or alert
+                    alert(JSON.stringify(data, null, 2));
+                })
+                .catch(error => console.error('Error loading transaction details:', error));
+        }
+    </script>
+</body>
+</html> 
