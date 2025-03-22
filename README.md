@@ -35,20 +35,12 @@
   - Material Design widgets
   - Custom Flutter widgets
   - Flutter themes
-- **API Integration**:
-  - Dio for HTTP requests
-  - Web_socket_channel for real-time features
 - **QR Integration**:
   - qr_flutter for generation
   - mobile_scanner for reading
 - **Form Handling**:
   - Flutter Form widgets
   - Custom form validators
-- **Navigation**: Flutter Navigation 2.0
-- **Testing**: 
-  - Flutter test
-  - Integration tests
-  - Widget tests
 
 ### Backend Technologies
 - **Framework**: Flask 2.0+
@@ -63,9 +55,6 @@
   - Flask-RESTful
   - Flask-CORS
   - Rate limiting
-- **Real-time**: Flask-SocketIO
-- **Testing**: PyTest
-- **Documentation**: Swagger/OpenAPI
 
 ## 💾 Database Schema
 
@@ -199,73 +188,6 @@ JWT_SECRET_KEY=your_jwt_secret
 API_BASE_URL=http://localhost:5000
 WS_URL=ws://localhost:5000
 ```
-
-## 📁 Project Structure
-
-```
-canteen_management_system/
-├── frontend/
-│   ├── lib/
-│   │   ├── screens/
-│   │   ├── widgets/
-│   │   ├── models/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── main.dart
-│   ├── test/
-│   ├── pubspec.yaml
-│   └── assets/
-└── backend/
-    ├── app.py
-    ├── models.py
-    ├── init_db.py
-    ├── requirements.txt
-    ├── static/
-    └── templates/
-```
-
-## 📊 Testing Strategy
-
-### Frontend Testing
-- Widget tests for UI components
-- Integration tests for API calls
-- Unit tests for business logic
-- Golden tests for UI snapshots
-- BLoC/Provider state tests
-
-### Backend Testing
-- Unit tests for models
-- API endpoint testing
-- Authentication flow tests
-- Database transaction tests
-- WebSocket connection tests
-
-## 🔄 CI/CD Pipeline
-
-```yaml
-stages:
-  - lint
-  - test
-  - build
-  - deploy
-
-lint:
-  - eslint (frontend)
-  - pylint (backend)
-
-test:
-  - jest (frontend)
-  - pytest (backend)
-
-build:
-  - npm build
-  - docker build
-
-deploy:
-  - staging
-  - production
-```
-
 ## 🌟 Features
 
 - **QR Code Integration**
@@ -377,13 +299,6 @@ canteen_management_system/
 - Process orders
 - View analytics
 - Manage users
-
-## 📱 Mobile Responsiveness
-
-The application is fully responsive across:
-- 💻 Desktop (1024px and above)
-- 📱 Tablet (768px to 1023px)
-- 📱 Mobile (320px to 767px)
 
 ## 🤝 Contributing
 
