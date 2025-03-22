@@ -9,6 +9,7 @@ import 'screens/qr_code_screen.dart';
 import 'screens/qr_scanner_screen.dart';
 import 'screens/meals_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/connection_test_screen.dart';
 import 'providers/app_state.dart';
 import 'services/api_service.dart';
 
@@ -50,6 +51,7 @@ class MyApp extends StatelessWidget {
           '/qr_scanner': (context) => const QRScannerScreen(),
           '/meals': (context) => const MealsScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/connection-test': (context) => const ConnectionTestScreen(),
         },
         home: const LoginScreen(),
       ),

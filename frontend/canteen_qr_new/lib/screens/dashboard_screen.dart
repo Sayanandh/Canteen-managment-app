@@ -1,286 +1,231 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
-import '../constants/app_constants.dart';
+import '../widgets/custom_card.dart';
+import '../models/user.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    setState(() => _isLoading = true);
-    try {
-      final appState = Provider.of<AppState>(context, listen: false);
-      await appState.login(appState.currentUser?.username ?? '', ''); // Refresh user data
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Widget _buildQuickActionButton({
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 24,
-                color: Theme.of(context).primaryColor,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final user = appState.currentUser;
+    final mealPlan = appState.mealPlan;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _fetchData,
+            onPressed: () => appState.refreshData(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => appState.logout(),
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _fetchData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (user != null) ...[
-                Text(
-                  'Hello, ${user.fullName.split(' ')[0]}!',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Balance Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+      body: appState.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: () => appState.refreshData(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withAlpha(26),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Welcome back,',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  user?.fullName ?? 'Guest',
+                                  style: Theme.of(context).textTheme.headlineSmall,
+                                ),
+                              ],
+                            ),
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              child: Text(
+                                user?.fullName.substring(0, 1).toUpperCase() ?? 'G',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Current Balance',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
+                          Expanded(
+                            child: InfoCard(
+                              title: 'Balance',
+                              subtitle: '₹${user?.balance.toStringAsFixed(2) ?? '0.00'}',
+                              icon: Icons.account_balance_wallet,
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const AddMoneyDialog(),
+                                );
+                              },
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white24,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              user.role.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: InfoCard(
+                              title: 'Meals Left',
+                              subtitle: '${mealPlan?.mealsRemaining ?? 0}',
+                              icon: Icons.restaurant,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/meals');
+                              },
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 24),
                       Text(
-                        '₹${user.balance.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        'Recent Transactions',
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: Implement add money functionality
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Money'),
-                          style: ElevatedButton.styleFrom(
-                            foregroundColor: Theme.of(context).primaryColor,
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _buildQuickActionButton(
-                      title: 'Scan QR',
-                      icon: Icons.qr_code_scanner,
-                      onTap: () {
-                        // Will be handled by FAB
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    _buildQuickActionButton(
-                      title: 'View Menu',
-                      icon: Icons.restaurant_menu,
-                      onTap: () {
-                        // Navigate to meals tab using Navigator
-                        Navigator.pushNamed(context, '/meals');
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    _buildQuickActionButton(
-                      title: 'History',
-                      icon: Icons.history,
-                      onTap: () {
-                        // TODO: Implement history view
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Recent Transactions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to full transaction history
-                      },
-                      child: Text(
-                        'View All',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: _isLoading
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: CircularProgressIndicator(),
+                      if (appState.transactions.isEmpty)
+                        Center(
+                          child: Text(
+                            'No transactions yet',
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         )
-                      : const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: appState.transactions.length > 5
+                              ? 5
+                              : appState.transactions.length,
+                          itemBuilder: (context, index) {
+                            final transaction = appState.transactions[index];
+                            return ListTile(
+                              title: Text(transaction.description ?? 'Transaction'),
+                              subtitle: Text(
+                                transaction.timestamp.toString(),
+                              ),
+                              trailing: Text(
+                                '₹${transaction.amount.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: transaction.amount > 0
+                                      ? Colors.green
+                                      : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              onTap: () {
+                                // TODO: Implement transaction details view
+                              },
+                            );
+                          },
+                        ),
+                      if (appState.transactions.length > 5) ...[
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              // TODO: Navigate to full transaction history
+                            },
                             child: Text(
-                              'No recent transactions',
+                              'View All Transactions',
                               style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.primary.withAlpha(204),
                               ),
                             ),
                           ),
                         ),
+                      ],
+                    ],
+                  ),
                 ),
-              ],
-            ],
-          ),
+              ),
+            ),
+    );
+  }
+}
+
+class AddMoneyDialog extends StatefulWidget {
+  const AddMoneyDialog({Key? key}) : super(key: key);
+
+  @override
+  State<AddMoneyDialog> createState() => _AddMoneyDialogState();
+}
+
+class _AddMoneyDialogState extends State<AddMoneyDialog> {
+  final _amountController = TextEditingController();
+  bool _isProcessing = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Money'),
+      content: TextField(
+        controller: _amountController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Amount',
+          prefixText: '₹',
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        if (_isProcessing)
+          const CircularProgressIndicator()
+        else
+          TextButton(
+            onPressed: () async {
+              if (_amountController.text.isEmpty) return;
+
+              setState(() => _isProcessing = true);
+              final amount = double.tryParse(_amountController.text);
+              
+              if (amount != null && amount > 0) {
+                final appState = Provider.of<AppState>(context, listen: false);
+                await appState.addBalance(amount);
+                if (!mounted) return;
+                Navigator.pop(context);
+              }
+              if (!mounted) return;
+              setState(() => _isProcessing = false);
+            },
+            child: const Text('Add'),
+          ),
+      ],
     );
   }
 } 

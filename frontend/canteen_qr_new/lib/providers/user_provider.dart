@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
 import '../services/api_service.dart';
 
 class UserProvider extends ChangeNotifier {
@@ -138,21 +137,20 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // For demo purposes, we'll just update the balance
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (_user != null) {
+      final response = await ApiService.getProfile();
+      if (response['success'] && _user != null) {
+        final userData = response['data'] as Map<String, dynamic>;
         _user = User(
           id: _user!.id,
-          name: _user!.name,
-          email: _user!.email,
-          role: _user!.role,
-          balance: _user!.balance + 10.0, // Add 10 to balance for demo
+          name: userData['full_name'] as String,
+          email: userData['email'] as String,
+          role: userData['role'] as String,
+          balance: (userData['balance'] as num).toDouble(),
           profileImage: _user!.profileImage,
         );
       }
     } catch (e) {
-      // Handle error
+      _error = 'Failed to refresh profile';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -166,13 +164,13 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await ApiService.addBalance(_user!.id.toString(), amount);
+      final response = await ApiService.addBalance(amount);
       
       if (response['success']) {
         await refreshUserProfile();
         return true;
       } else {
-        _error = response['message'];
+        _error = response['message'] as String;
         return false;
       }
     } catch (e) {

@@ -82,7 +82,7 @@ class AppBorderRadius {
 
 class ApiEndpoints {
   // For physical device access
-  static const String baseUrl = 'http://192.168.1.89:5000/api';
+  static const String baseUrl = '172.16.124.66:5000/api';
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String profile = '/users';

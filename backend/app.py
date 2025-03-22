@@ -10,8 +10,10 @@ import uuid
 import json
 import logging
 import sys
+from sqlalchemy import text
 
 from models import db, User, QRCode, MealPlan, MenuItem, Transaction, MealConsumption
+from init_db import init_db
 
 # Configure logging to show more details
 logging.basicConfig(
@@ -27,9 +29,10 @@ app = Flask(__name__)
 # Configure CORS to accept requests from your Flutter app
 CORS(app, resources={
     r"/api/*": {
-        "origins": "*",
+        "origins": ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:5000"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
     }
 })
 
@@ -50,31 +53,6 @@ def log_request_info():
 def after_request(response):
     logger.debug('Response: %s', response.get_data())
     return response
-
-def init_db():
-    with app.app_context():
-        db.create_all()
-        # Create admin user if not exists
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            admin = User(
-                username='admin',
-                email='admin@example.com',
-                password_hash=generate_password_hash('admin123'),
-                full_name='Admin User',
-                role='admin',
-                balance=1000.0
-            )
-            db.session.add(admin)
-            db.session.commit()
-            
-            # Create QR code for admin
-            qr_code = QRCode(user_id=admin.id)
-            db.session.add(qr_code)
-            db.session.commit()
-
-# Initialize database
-init_db()
 
 # Authentication routes
 @app.route('/api/auth/login', methods=['POST'])
@@ -826,6 +804,66 @@ def test_server():
         'message': 'Flask server is running'
     })
 
+# Add health check endpoint
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    try:
+        # Test database connection
+        db.session.execute(text('SELECT 1'))
+        return jsonify({
+            'status': 'success',
+            'message': 'Server is healthy',
+            'database': 'connected',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'Server health check failed',
+            'error': str(e)
+        }), 500
+
+# Error handlers
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        'success': False,
+        'message': 'Bad request',
+        'error': str(error)
+    }), 400
+
+@app.errorhandler(401)
+def unauthorized(error):
+    return jsonify({
+        'success': False,
+        'message': 'Unauthorized',
+        'error': str(error)
+    }), 401
+
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({
+        'success': False,
+        'message': 'Forbidden',
+        'error': str(error)
+    }), 403
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        'success': False,
+        'message': 'Resource not found',
+        'error': str(error)
+    }), 404
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        'success': False,
+        'message': 'Internal server error',
+        'error': str(error)
+    }), 500
+
+# Initialize database
 if __name__ == '__main__':
-    # Run the app on all network interfaces
     app.run(host='0.0.0.0', port=5000, debug=True) 

@@ -1,49 +1,60 @@
-from app import app, db
-from models import User, QRCode, MealPlan, MenuItem, Transaction
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 
-def init_db():
+def init_db(app, db):
     with app.app_context():
+        from models import User, QRCode, MealPlan, MenuItem, Transaction
+        
         # Create tables
         db.create_all()
         
-        # Check if data already exists
-        if User.query.count() > 0:
-            print("Database already initialized. Skipping...")
-            return
+        # Check if admin user exists
+        admin = User.query.filter_by(email='admin@example.com').first()
+        if not admin:
+            # Create admin user
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                password_hash=generate_password_hash('admin123'),
+                full_name='Admin User',
+                role='admin',
+                balance=1000.0,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(admin)
+            db.session.commit()
+            
+            # Create QR code for admin
+            admin_qr = QRCode(
+                user_id=admin.id,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(admin_qr)
+            db.session.commit()
         
-        # Create admin user
-        admin = User(
-            username='admin',
-            email='admin@example.com',
-            password_hash=generate_password_hash('admin123'),
-            full_name='Admin User',
-            role='admin',
-            balance=1000.0
-        )
-        db.session.add(admin)
-        db.session.commit()
-        
-        # Create QR code for admin
-        admin_qr = QRCode(user_id=admin.id)
-        db.session.add(admin_qr)
-        
-        # Create staff user
-        staff = User(
-            username='staff',
-            email='staff@example.com',
-            password_hash=generate_password_hash('staff123'),
-            full_name='Staff User',
-            role='staff',
-            balance=500.0
-        )
-        db.session.add(staff)
-        db.session.commit()
-        
-        # Create QR code for staff
-        staff_qr = QRCode(user_id=staff.id)
-        db.session.add(staff_qr)
+        # Check if staff user exists
+        staff = User.query.filter_by(email='staff@example.com').first()
+        if not staff:
+            # Create staff user
+            staff = User(
+                username='staff',
+                email='staff@example.com',
+                password_hash=generate_password_hash('staff123'),
+                full_name='Staff User',
+                role='staff',
+                balance=500.0,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(staff)
+            db.session.commit()
+            
+            # Create QR code for staff
+            staff_qr = QRCode(
+                user_id=staff.id,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(staff_qr)
+            db.session.commit()
         
         # Create regular users
         users = [
@@ -208,4 +219,5 @@ def init_db():
         print("Database initialized successfully!")
 
 if __name__ == '__main__':
-    init_db() 
+    from app import app, db
+    init_db(app, db) 
