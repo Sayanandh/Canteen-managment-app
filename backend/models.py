@@ -1,80 +1,130 @@
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import uuid
 
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'users'
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    full_name = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(20), default='user')  # 'user', 'staff', 'admin'
-    balance = db.Column(db.Float, default=0.0)
+    password_hash = db.Column(db.String(128))
+    name = db.Column(db.String(120))
+    role = db.Column(db.String(20), default='user')  # 'admin' or 'user'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    qr_code = db.relationship('QRCode', backref='user', uselist=False)
-    transactions = db.relationship('Transaction', backref='user', lazy=True)
-    meal_plan = db.relationship('MealPlan', backref='user', uselist=False)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-class QRCode(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(db.String(36), unique=True, default=lambda: str(uuid.uuid4()))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_used = db.Column(db.DateTime, nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
-
-    def __repr__(self):
-        return f'<QRCode {self.uuid}>'
-
-class MealPlan(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    plan_type = db.Column(db.String(50), nullable=False)  # 'daily', 'weekly', 'monthly'
-    meals_remaining = db.Column(db.Integer, default=0)
-    breakfast_allowed = db.Column(db.Boolean, default=True)
-    lunch_allowed = db.Column(db.Boolean, default=True)
-    dinner_allowed = db.Column(db.Boolean, default=True)
-    start_date = db.Column(db.DateTime, default=datetime.utcnow)
-    end_date = db.Column(db.DateTime, nullable=True)
     
-    def __repr__(self):
-        return f'<MealPlan {self.plan_type} for User {self.user_id}>'
+    # Relationships
+    meal_plans = db.relationship('MealPlan', backref='user', lazy=True)
+    transactions = db.relationship('Transaction', backref='user', lazy=True)
+    meal_consumptions = db.relationship('MealConsumption', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'name': self.name,
+            'role': self.role,
+            'created_at': self.created_at.isoformat()
+        }
 
 class MenuItem(db.Model):
+    __tablename__ = 'menu_items'
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+    description = db.Column(db.Text)
     price = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # 'breakfast', 'lunch', 'dinner', 'snack'
+    category = db.Column(db.String(50))  # e.g., 'breakfast', 'lunch', 'dinner'
     is_available = db.Column(db.Boolean, default=True)
-    image_url = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'price': self.price,
+            'category': self.category,
+            'is_available': self.is_available,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+class MealPlan(db.Model):
+    __tablename__ = 'meal_plans'
     
-    def __repr__(self):
-        return f'<MenuItem {self.name}>'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    plan_type = db.Column(db.String(50), nullable=False)  # e.g., 'daily', 'weekly', 'monthly'
+    start_date = db.Column(db.DateTime, nullable=False)
+    end_date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'plan_type': self.plan_type,
+            'start_date': self.start_date.isoformat(),
+            'end_date': self.end_date.isoformat(),
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
 
 class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    transaction_type = db.Column(db.String(20), nullable=False)  # 'meal', 'extra_item', 'recharge'
-    description = db.Column(db.Text, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    meal_type = db.Column(db.String(20), nullable=True)  # 'breakfast', 'lunch', 'dinner'
-    status = db.Column(db.String(20), default='completed')  # 'pending', 'completed', 'failed'
+    __tablename__ = 'transactions'
     
-    def __repr__(self):
-        return f'<Transaction {self.id} - {self.amount}>'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    transaction_type = db.Column(db.String(20), nullable=False)  # 'purchase', 'refund', etc.
+    status = db.Column(db.String(20), nullable=False)  # 'pending', 'completed', 'failed'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship with MealConsumption
+    meal_consumptions = db.relationship('MealConsumption', backref='transaction', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'amount': self.amount,
+            'transaction_type': self.transaction_type,
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
 
 class MealConsumption(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    meal_type = db.Column(db.String(20), nullable=False)  # 'breakfast', 'lunch', 'dinner'
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    __tablename__ = 'meal_consumptions'
     
-    def __repr__(self):
-        return f'<MealConsumption {self.meal_type} by User {self.user_id}>' 
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    transaction_id = db.Column(db.Integer, db.ForeignKey('transactions.id'), nullable=False)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menu_items.id'), nullable=False)
+    consumed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with MenuItem
+    menu_item = db.relationship('MenuItem', backref='consumptions', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'transaction_id': self.transaction_id,
+            'menu_item_id': self.menu_item_id,
+            'menu_item': self.menu_item.to_dict() if self.menu_item else None,
+            'consumed_at': self.consumed_at.isoformat()
+        }
